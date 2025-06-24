@@ -66,5 +66,38 @@ f = [
 %% Item 3
 % x = [psi alfa psi_dot alfa_dot]
 % u = x4
-% Cálculo dos elementos da matriz A
+
+% Cálculo do par de equilíbrio
+xe=[0;0;0;0];
+ue= 0;
+
+% Cálculo das matrizes do sistema linearizado
+A = subs(subs(jacobian(f,x),x,xe),u,ue);
+B = subs(jacobian(f,u), x, xe);
+
+% Cálculo das matrizes do sistema discretizado
+Ts = 11e-3;
+[Ad,Bd] = c2d(double(A),double(B),Ts);
+
+% Controlabilidade e Observabilidade do sistema linearizado
+Con = ctrb(Ad,Bd);
+rCon = svd(Con);
+C = [1 0 0 0;
+     0 1 0 0;
+     0 0 1 0];
+Ob = obsv(Ad,C);
+rOb = svd(Ob);
+
+% Cálculo do Ganho Kd
+Qc = diag([1,1,1,1]);
+Rc = 1;
+Kd = dlqr(Ad,Bd,Qc,Rc);
+eig(Ad-Bd*Kd)
+
+% Cálculo do Ganho Ld
+V1 = diag([1,1,1,1]);
+V2 = diag([1,1,1]);
+Ld = dlqr(Ad',C',V1,V2)';
+eig(Ad-Ld*C)
+
 
