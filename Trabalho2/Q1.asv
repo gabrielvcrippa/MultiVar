@@ -60,7 +60,7 @@ f = [
     x3;
     x4;
     (k7*g*sin(x1)+2*x3*x4*sin(x2)*cos(x2)*k10-x4*cos(x2)*omega*IG33)/(k9+cos(x2)^2*k4+sin(x2)^2*k6);
-    (M_u-x3*cos(x2)*sin(x2)*k10+x3*omega*cos(x2)*IG33)/(k5);
+    (M_u-x3*cos(x2)*sin(x2)*k10+x3*omega*cos(x2)*IG33)/;
 ];
 
 %% Item 3
