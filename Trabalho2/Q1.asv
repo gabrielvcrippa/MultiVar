@@ -11,7 +11,7 @@ aG = 1*.02; % [m] distância entre o centro de massa do giroscópio e ponto de r
 aV = .1; % [m] altura do veículo
 lV = .035; % [m] largura do veículo
 dG = .1+.02;
-d1 = 0.03; % [m] distância entre a linha da base das rodas (a linha que conecta os pontos de contato das rodas dianteira e traseira) e o centro de massa do corpo principal do veículo.
+d1 = 0.015; % [m] distância entre a linha da base das rodas (a linha que conecta os pontos de contato das rodas dianteira e traseira) e o centro de massa do corpo principal do veículo.
 d2 = aG+d1; % [m] distância entre essa mesma linha da base das rodas e o centro de massa do giroscópio
 mB = mV;
 mC = .01;
@@ -49,23 +49,8 @@ f = [
     x3;
     x4;
     (k7*g*sin(x1)+2*x3*x4*sin(x2)*cos(x2)*k10-x4*cos(x2)*omega*IG33)/(k9+cos(x2)^2*k4+sin(x2)^2*k6);
-    (M_u-x3^2*cos(x2)*sin(x2)*k10-x3*omega*cos(x2)*IG33)/(k5);
+    (M_u-x3*cos(x2)*sin(x2)*k10+x3*omega*cos(x2)*IG33)/(k5);
 ];
-
-% Cálculo do par de equilíbrio
-xe=[0;0;0;0];
-ue= 0;
-
-% Cálculo das matrizes do sistema linearizado
-A = subs(subs(jacobian(f,x),x,xe),u,ue);
-B = subs(jacobian(f,u), x, xe);
-
-% Cálculo das matrizes do sistema discretizado
-Ts = 5e-3;
-[Ad,Bd] = c2d(double(A),double(B),Ts);
-C = [1 0 0 0;
-     0 1 0 0;
-     0 0 1 0];
 
 %% Item 1
 A = [0 0 1; 0 0 0; 92.8581 0 0];
@@ -97,29 +82,37 @@ Kd = dlqr(Ad,Bd,Q,R);
 % x = [psi alfa psi_dot alfa_dot]
 % u = x4
 
+% Cálculo do par de equilíbrio
+xe=[0;0;0;0];
+ue= 0;
+
+% Cálculo das matrizes do sistema linearizado
+A = subs(subs(jacobian(f,x),x,xe),u,ue);
+B = subs(jacobian(f,u), x, xe);
+
+% Cálculo das matrizes do sistema discretizado
+Ts = 10e-3;
+[Ad,Bd] = c2d(double(A),double(B),Ts);
+
 % Controlabilidade e Observabilidade do sistema linearizado
 Con = ctrb(Ad,Bd);
 rCon = svd(Con);
+C = [1 0 0 0;
+     0 1 0 0;
+     0 0 1 0];
 Ob = obsv(Ad,C);
 rOb = svd(Ob);
 
 % Cálculo do Ganho Kd
-Qc = diag([10,5,8,1]);
-Rc = 90;
+Qc = diag([25,25,25,25]);
+Rc = 9;
 Kd = dlqr(Ad,Bd,Qc,Rc);
 eig(Ad-Bd*Kd)
 
 % Cálculo do Ganho Ld
-V1 = 1*diag([10,10,10,5]);
+V1 = 1*diag([1,10,1,5]);
 V2 = 1e-5*diag([1,1,1]);
 Ld = dlqr(Ad',C',V1,V2)';
 eig(Ad-Ld*C)
 
-%% Item 4
-
-%Cálculo dos ganhos utilizado no filtro de Kalman
-Qk = diag([10,5,8,1]);
-Rk = 90;
-Kk = dlqr(Ad,Bd,Qk,Rk);
-eig(Ad-Bd*Kd)
 
