@@ -118,8 +118,18 @@ eig(Ad-Ld*C)
 %% Item 4
 
 %Cálculo dos ganhos utilizado no filtro de Kalman
-Qk = diag([10,5,8,1]);
-Rk = 90;
-Kk = dlqr(Ad,Bd,Qk,Rk);
-eig(Ad-Bd*Kd)
+Qkf = diag([10,5,8,1]);
+Rkf = 90;
+Kkf = dlqr(Ad,Bd,Qkf,Rkf);
+x0kf = [0;0;0;0];
+P0kf = 10*eye(4);
+eig(Ad-Bd*Kkf)
 
+%Cálculo dos ganhos utilizado no filtro de Kalman estendido
+Ak = eye(4) + Ts * jacobian(f,x);
+Qekf = diag([1,1,1,1]);
+Rekf = 1;
+Kekf = dlqr(Ad,Bd,Qekf,Rekf);
+x0ekf = [deg2rad(0);0;0;0];
+P0ekf = 1e8*eye(4);
+eig(Ad-Bd*Kekf)
