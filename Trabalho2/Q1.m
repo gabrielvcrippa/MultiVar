@@ -3,43 +3,33 @@ clear all;
 syms x1 x2 x3 x4 u real;
 
 x = [x1;x2;x3;x4];
+
 mV = .430; % [kg] massa do veículo, excluindo giroscópio e objeto
 mG = .190; % [kg] massa do giroscópio
 rG = 2*.05; % [m] raio do giroscópio
-aG = -1*.02; % [m] distância entre o centro de massa do giroscópio e ponto de rotação
+aG = 1*.02; % [m] distância entre o centro de massa do giroscópio e ponto de rotação
 aV = .1; % [m] altura do veículo
 lV = .035; % [m] largura do veículo
-pV = 0.1; % [m] comprimento do veículo
 dG = .1+.02;
-dV = .1;
-d1 = 0; % [m] distância entre a linha da base das rodas (a linha que conecta os pontos de contato das rodas dianteira e traseira) e o centro de massa do corpo principal do veículo.
-d2 = aG; % [m] distância entre essa mesma linha da base das rodas e o centro de massa do giroscópio
+d1 = 0.02; % [m] distância entre a linha da base das rodas (a linha que conecta os pontos de contato das rodas dianteira e traseira) e o centro de massa do corpo principal do veículo.
+d2 = aG+d1; % [m] distância entre essa mesma linha da base das rodas e o centro de massa do giroscópio
 mB = mV;
-mC = mG;
+mC = .01;
+
 yL = 0;
 zL = 0;
 mL = 0;
-sigma = 0;
 
-omega = 3000*10472; % rpm * conversion factor = rad/sec
+omega = 6000/(60)*2*pi; % rpm * conversion factor = rad/sec
 g = 9.81; % [m/s^2] aceleração da gravidade
 IG11 = (mG*(rG^2)/4) + (mG*(dG^2)/12); % IG22 = IG11
 IG33 = (mG*(rG^2))/2;
 IB11 = (1/12) * mV * (lV^2 + aV^2); % eixo X (roll)
-IB22 = (1/12) * mV * (pV^2 + aV^2); % eixo Y (pitch)
-IB33 = (1/12) * mV * (pV^2 + lV^2); % eixo Z (yaw)
 
-IC11 = 0;
-IC22 = 0;
-IC33 = 0;
 IG22 = IG11;
 IL11 = 0;
-IL22 = 0;
-IL33 = 0;
 
 k1 = IB11 + IL11;
-k2 = IB22 + IL22;
-k3 = IB33 + IL33;
 k4 = IG11;     % (IC11 + IG11), IC11 = 0
 k5 = IG22;     % (IC22 + IG22), IC22 = 0
 k6 = IG33;     % (IC33 + IG33), IC33 = 0
@@ -51,7 +41,6 @@ k10 = k4 - k6;
 
 % Symbolic dynamics
 c = cos(x2);
-s = sin(x2);
 
 M_u = IG33 * omega * c * u;
 
@@ -62,6 +51,32 @@ f = [
     (k7*g*sin(x1)+2*x3*x4*sin(x2)*cos(x2)*k10-x4*cos(x2)*omega*IG33)/(k9+cos(x2)^2*k4+sin(x2)^2*k6);
     (M_u-x3*cos(x2)*sin(x2)*k10+x3*omega*cos(x2)*IG33)/(k5);
 ];
+
+%% Item 1
+A = [0 0 1; 0 0 0; 92.8581 0 0];
+B = [0; 1; -79.361];
+C = eye(3);
+D = zeros(3,1);
+
+x0 = [pi/3 0 0]; % Condicao inicial -> [ρ θ ρ']
+
+% 1) Planta discretizada
+
+Ts = 11e-3;
+[Ad,Bd] = c2d(A,B,Ts);
+
+Cond = ctrb(Ad,Bd);
+svd(Cond);
+
+% Controle dLQR
+Q = diag([48, 25, 25]);
+R = 90;
+Kd = dlqr(Ad,Bd,Q,R);
+eig(Ad-Bd*Kd)
+
+% 2) Controle trabalho 1 x trabalho 2
+K = [-3.6  -0.58 -0.88];
+Kd = dlqr(Ad,Bd,Q,R);
 
 %% Item 3
 % x = [psi alfa psi_dot alfa_dot]
@@ -76,7 +91,7 @@ A = subs(subs(jacobian(f,x),x,xe),u,ue);
 B = subs(jacobian(f,u), x, xe);
 
 % Cálculo das matrizes do sistema discretizado
-Ts = 11e-3;
+Ts = 5e-3;
 [Ad,Bd] = c2d(double(A),double(B),Ts);
 
 % Controlabilidade e Observabilidade do sistema linearizado
@@ -89,7 +104,7 @@ Ob = obsv(Ad,C);
 rOb = svd(Ob);
 
 % Cálculo do Ganho Kd
-Qc = diag([1,1,1,1]);
+Qc = diag([1,1,1,5]);
 Rc = 1;
 Kd = dlqr(Ad,Bd,Qc,Rc);
 eig(Ad-Bd*Kd)
