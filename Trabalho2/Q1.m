@@ -4,15 +4,18 @@ syms x1 x2 x3 x4 u real;
 
 x = [x1;x2;x3;x4];
 
-mV = .430; % [kg] massa do veículo, excluindo giroscópio e objeto
-mG = .190; % [kg] massa do giroscópio
-rG = 2*.05; % [m] raio do giroscópio
-aG = 1*.02; % [m] distância entre o centro de massa do giroscópio e ponto de rotação
-aV = .1; % [m] altura do veículo
-lV = .035; % [m] largura do veículo
-dG = .1+.02;
-d1 = 0.03; % [m] distância entre a linha da base das rodas (a linha que conecta os pontos de contato das rodas dianteira e traseira) e o centro de massa do corpo principal do veículo.
-d2 = aG+d1; % [m] distância entre essa mesma linha da base das rodas e o centro de massa do giroscópio
+mV = 0.210;  % Massa do veículo sem giro [kg]
+mG = 0.123;  % Massa do giro [kg]
+rG = 0.046;  % Raio do giro [m]
+aG = 0.005;  % Espessura giro [m]
+aV = 0.088;  % Altura veículo [m]
+lV = 0.175;  % Largura veículo [m]
+dG = 0.054;  % Distância entre centro de massa do giro e eixo de rotação [m]
+dV = 0.025;  % Distância entre centro de massa do veículo e eixo de rotação[m]
+omega = 2 * 3657 * 0.10472; % Velocidade de rotação do giro [rad/s]
+g = 9.81;    % Gravidade [m/s^2]
+d1 = 0.025;
+d2 = 0.054;
 mB = mV;
 mC = .01;
 
@@ -20,7 +23,6 @@ yL = 0;
 zL = 0;
 mL = 0;
 
-omega = 6000/(60)*2*pi; % rpm * conversion factor = rad/sec
 g = 9.81; % [m/s^2] aceleração da gravidade
 IG11 = (mG*(rG^2)/4) + (mG*(dG^2)/12); % IG22 = IG11
 IG33 = (mG*(rG^2))/2;
@@ -127,8 +129,8 @@ eig(Ad-Bd*Kkf)
 
 %Cálculo dos ganhos utilizado no filtro de Kalman estendido
 Ak = eye(4) + Ts * jacobian(f,x);
-Qekf = diag([1,1,1,1]);
-Rekf = 1;
+Qekf = diag([10,5,8,1]);
+Rekf = 90;
 Kekf = dlqr(Ad,Bd,Qekf,Rekf);
 x0ekf = [deg2rad(0);0;0;0];
 P0ekf = 1e8*eye(4);
