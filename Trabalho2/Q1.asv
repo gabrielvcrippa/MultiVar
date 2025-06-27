@@ -6,6 +6,7 @@ x = [x1;x2;x3;x4];
 
 mV = 0.210;  % Massa do veículo sem giro [kg]
 mG = 0.123;  % Massa do giro [kg]
+mC = 0;
 rG = 0.046;  % Raio do giro [m]
 aG = 0.005;  % Espessura giro [m]
 aV = 0.088;  % Altura veículo [m]
@@ -16,8 +17,6 @@ omega = 2 * 3657 * 0.10472; % Velocidade de rotação do giro [rad/s]
 g = 9.81;    % Gravidade [m/s^2]
 d1 = 0.025;
 d2 = 0.054;
-mB = mV;
-mC = .01;
 
 yL = 0;
 zL = 0;
@@ -36,8 +35,8 @@ k4 = IG11;     % (IC11 + IG11), IC11 = 0
 k5 = IG22;     % (IC22 + IG22), IC22 = 0
 k6 = IG33;     % (IC33 + IG33), IC33 = 0
 
-k7 = d1 * mB + d2 * (mC + mG);
-k8 = d1^2 * mB + d2^2 * (mC + mG);
+k7 = d1 * mV + d2 * (mC + mG);
+k8 = d1^2 * mV + d2^2 * (mC + mG);
 k9 = k1 + k8 + (yL^2 + zL^2) * mL;
 k10 = k4 - k6;
 
@@ -70,30 +69,26 @@ C = [1 0 0 0;
      0 0 1 0];
 
 %% Item 1
-A = [0 0 1; 0 0 0; 92.8581 0 0];
-B = [0; 1; -79.361];
-C = eye(3);
-D = zeros(3,1);
+Am = [0 0 1; 0 0 0; 92.8581 0 0];
+Bm = [0; 1; -79.361];
+Cm = eye(3);
+Dm = zeros(3,1);
 
 x0 = [pi/3 0 0]; % Condicao inicial -> [ρ θ ρ']
 
 % 1) Planta discretizada
 
-Ts = 11e-3;
-[Ad,Bd] = c2d(A,B,Ts);
+Tsm = 11e-3;
+[Adm,Bdm] = c2d(Am,Bm,Tsm);
 
 Cond = ctrb(Ad,Bd);
 svd(Cond);
 
 % Controle dLQR
-Q = diag([48, 25, 25]);
-R = 90;
-Kd = dlqr(Ad,Bd,Q,R);
-eig(Ad-Bd*Kd)
-
-% 2) Controle trabalho 1 x trabalho 2
-K = [-3.6  -0.58 -0.88];
-Kd = dlqr(Ad,Bd,Q,R);
+Qm = diag([48, 25, 25]);
+Rm = 90;
+Kdm = dlqr(Adm,Bdm,Qm,Rm);
+eig(Adm-Bdm*Kdm)
 
 %% Item 3
 % x = [psi alfa psi_dot alfa_dot]
@@ -106,9 +101,9 @@ Ob = obsv(Ad,C);
 rOb = svd(Ob);
 
 % Cálculo do Ganho Kd
-Qc = diag([10,5,8,1]);
-Rc = 90;
-Kd = dlqr(Ad,Bd,Qc,Rc);
+Qd = diag([80, 10, 15, 3]);
+Rd = 20;
+Kd = dlqr(Ad,Bd,Qd,Rd);
 eig(Ad-Bd*Kd)
 
 % Cálculo do Ganho Ld
@@ -116,6 +111,7 @@ V1 = 1*diag([1,1,1,5]);
 V2 = 1e-5*diag([1,1,1]);
 Ld = dlqr(Ad',C',V1,V2)';
 eig(Ad-Ld*C)
+x0obs = [deg2rad(1);0;0;0];
 
 %% Item 4
 
@@ -129,8 +125,8 @@ eig(Ad-Bd*Kkf)
 
 %Cálculo dos ganhos utilizado no filtro de Kalman estendido
 Ak = eye(4) + Ts * jacobian(f,x);
-Qekf = diag([10,5,8,1]);
-Rekf = 90;
+Qekf = diag([25,5,25,10]);
+Rekf = 9;
 Kekf = dlqr(Ad,Bd,Qekf,Rekf);
 x0ekf = [deg2rad(0);0;0;0];
 P0ekf = 1e8*eye(4);

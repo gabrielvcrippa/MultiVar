@@ -101,17 +101,17 @@ Ob = obsv(Ad,C);
 rOb = svd(Ob);
 
 % Cálculo do Ganho Kd
-Qd = diag([5,5,5,1]);
-Rd = 90;
+Qd = diag([80, 10, 15, 3]);
+Rd = 20;
 Kd = dlqr(Ad,Bd,Qd,Rd);
 eig(Ad-Bd*Kd)
 
 % Cálculo do Ganho Ld
-V1 = 1e-5*diag([1,1,1,5]);
-V2 = 1e-5*diag([1,1,1]);
+V1 = diag([0.01, 0.01, 0.1, 0.5]);  % modelo bem estimado, mas precessão menos certa
+V2 = 1e-4*diag([0.001, 0.001, 0.05]); 
 Ld = dlqr(Ad',C',V1,V2)';
 eig(Ad-Ld*C)
-x0obs = [deg2rad(10);0;0;0];
+x0obs = [deg2rad(0);0;0;0];
 
 %% Item 4
 
