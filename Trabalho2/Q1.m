@@ -116,8 +116,8 @@ x0obs = [deg2rad(0);0;0;0];
 %% Item 4
 
 %Cálculo dos ganhos utilizado no filtro de Kalman
-Qkf = diag([10,5,8,1]);
-Rkf = 90;
+Qkf = diag([80, 10, 15, 3]);
+Rkf = 20;
 Kkf = dlqr(Ad,Bd,Qkf,Rkf);
 x0kf = [0;0;0;0];
 P0kf = 10*eye(4);
@@ -125,9 +125,191 @@ eig(Ad-Bd*Kkf)
 
 %Cálculo dos ganhos utilizado no filtro de Kalman estendido
 Ak = eye(4) + Ts * jacobian(f,x);
-Qekf = diag([25,5,25,10]);
-Rekf = 9;
+Qekf = diag([150, 20, 30, 10]);
+Rekf = 30;
 Kekf = dlqr(Ad,Bd,Qekf,Rekf);
 x0ekf = [deg2rad(0);0;0;0];
 P0ekf = 1e8*eye(4);
 eig(Ad-Bd*Kekf)
+
+%% Plotagem de gráficos
+t = out.LQGData.Time;
+ro = out.LQGData.Data(:,1);
+theta = out.LQGData.Data(:,2);
+rop = out.LQGData.Data(:,3);
+thetap = out.LQGData.Data(:,4);
+u = out.LQGData.Data(:,5);
+
+ero = out.LQGData.Data(:,6);
+etheta = out.LQGData.Data(:,7);
+erop = out.LQGData.Data(:,8);
+ethetap = out.LQGData.Data(:,9);
+
+figure(1)
+plot(t, ro, 'LineWidth', 2, 'DisplayName', 'ro');
+hold on;
+plot(t, theta, 'LineWidth', 2, 'DisplayName', 'theta');
+plot(t, rop, 'LineWidth', 2, 'DisplayName', 'rop');
+plot(t, thetap, 'LineWidth', 2, 'DisplayName', 'thetap');
+
+plot(t, ero, 'LineWidth', 2, 'DisplayName', 'ero', 'LineStyle','--');
+plot(t, etheta, 'LineWidth', 2, 'DisplayName', 'etheta', 'LineStyle','--');
+plot(t, erop, 'LineWidth', 2, 'DisplayName', 'erop', 'LineStyle','--');
+plot(t, ethetap, 'LineWidth', 2, 'DisplayName', 'ethetap', 'LineStyle','--');
+hold off;
+grid on;
+
+xlabel('Tempo (s)', 'FontSize', 12, 'FontWeight', 'bold');
+
+legend('show', 'FontSize', 12, 'Location', 'best');
+title('Dinâmica LQG', 'FontSize', 14, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'FontWeight', 'bold');
+
+filename = 'dinamica_lqg.png';  
+saveas(gcf, filename);
+
+figure(2)
+plot(t, u, 'LineWidth', 2, 'DisplayName', 'u');
+grid on;
+
+xlabel('Tempo (s)', 'FontSize', 12, 'FontWeight', 'bold');
+
+legend('show', 'FontSize', 12, 'Location', 'best');
+title('Esforço de controle LQG', 'FontSize', 14, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'FontWeight', 'bold');
+
+filename = 'controle_lqg.png';  
+saveas(gcf, filename);
+
+t = out.Real.Time;
+ro = out.Real.Data(:,1);
+theta = out.Real.Data(:,2);
+rop = out.Real.Data(:,3);
+u = out.Real.Data(:,4);
+
+figure(3)
+plot(t, ro, 'LineWidth', 2, 'DisplayName', 'ro');
+hold on;
+plot(t, theta, 'LineWidth', 2, 'DisplayName', 'theta');
+plot(t, rop, 'LineWidth', 2, 'DisplayName', 'rop');
+plot(t, thetap, 'LineWidth', 2, 'DisplayName', 'thetap');
+hold off;
+grid on;
+
+xlabel('Tempo (s)', 'FontSize', 12, 'FontWeight', 'bold');
+
+legend('show', 'FontSize', 12, 'Location', 'best');
+title('Dinâmica 3 estados sistema discretizado', 'FontSize', 14, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'FontWeight', 'bold');
+
+filename = 'dinamica_real.png';  
+saveas(gcf, filename);
+
+figure(4)
+plot(t, u, 'LineWidth', 2, 'DisplayName', 'u');
+grid on;
+
+xlabel('Tempo (s)', 'FontSize', 12, 'FontWeight', 'bold');
+
+legend('show', 'FontSize', 12, 'Location', 'best');
+title('Esforço de controle modelo 3 estados', 'FontSize', 14, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'FontWeight', 'bold');
+
+filename = 'controle_real.png';  
+saveas(gcf, filename);
+
+t = out.KF.Time;
+ro = out.KF.Data(:,1);
+theta = out.KF.Data(:,2);
+rop = out.KF.Data(:,3);
+thetap = out.KF.Data(:,4);
+u = out.KF.Data(:,5);
+
+ero = out.KF.Data(:,6);
+etheta = out.KF.Data(:,7);
+erop = out.KF.Data(:,8);
+ethetap = out.KF.Data(:,9);
+
+figure(5)
+plot(t, ro, 'LineWidth', 2, 'DisplayName', 'ro');
+hold on;
+plot(t, theta, 'LineWidth', 2, 'DisplayName', 'theta');
+plot(t, rop, 'LineWidth', 2, 'DisplayName', 'rop');
+plot(t, thetap, 'LineWidth', 2, 'DisplayName', 'thetap');
+
+plot(t, ero, 'LineWidth', 2, 'DisplayName', 'ero', 'LineStyle','--');
+plot(t, etheta, 'LineWidth', 2, 'DisplayName', 'etheta', 'LineStyle','--');
+plot(t, erop, 'LineWidth', 2, 'DisplayName', 'erop', 'LineStyle','--');
+plot(t, ethetap, 'LineWidth', 2, 'DisplayName', 'ethetap', 'LineStyle','--');
+hold off;
+grid on;
+
+xlabel('Tempo (s)', 'FontSize', 12, 'FontWeight', 'bold');
+
+legend('show', 'FontSize', 12, 'Location', 'best');
+title('Dinâmica LQG KF ganho variável', 'FontSize', 14, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'FontWeight', 'bold');
+
+filename = 'dinamica_KF.png';  
+saveas(gcf, filename);
+
+figure(6)
+plot(t, u, 'LineWidth', 2, 'DisplayName', 'u');
+grid on;
+
+xlabel('Tempo (s)', 'FontSize', 12, 'FontWeight', 'bold');
+
+legend('show', 'FontSize', 12, 'Location', 'best');
+title('Esforço de controle modelo LQG KF ganho variável', 'FontSize', 14, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'FontWeight', 'bold');
+
+filename = 'controle_KF.png';  
+saveas(gcf, filename);
+
+t = out.EKF.Time;
+ro = out.EKF.Data(:,1);
+theta = out.EKF.Data(:,2);
+rop = out.EKF.Data(:,3);
+thetap = out.EKF.Data(:,4);
+u = out.EKF.Data(:,5);
+
+ero = out.EKF.Data(:,6);
+etheta = out.EKF.Data(:,7);
+erop = out.EKF.Data(:,8);
+ethetap = out.EKF.Data(:,9);
+
+figure(1)
+plot(t, ro, 'LineWidth', 2, 'DisplayName', 'ro');
+hold on;
+plot(t, theta, 'LineWidth', 2, 'DisplayName', 'theta');
+plot(t, rop, 'LineWidth', 2, 'DisplayName', 'rop');
+plot(t, thetap, 'LineWidth', 2, 'DisplayName', 'thetap');
+
+plot(t, ero, 'LineWidth', 2, 'DisplayName', 'ero', 'LineStyle','--');
+plot(t, etheta, 'LineWidth', 2, 'DisplayName', 'etheta', 'LineStyle','--');
+plot(t, erop, 'LineWidth', 2, 'DisplayName', 'erop', 'LineStyle','--');
+plot(t, ethetap, 'LineWidth', 2, 'DisplayName', 'ethetap', 'LineStyle','--');
+hold off;
+grid on;
+
+xlabel('Tempo (s)', 'FontSize', 12, 'FontWeight', 'bold');
+
+legend('show', 'FontSize', 12, 'Location', 'best');
+title('Dinâmica EKF', 'FontSize', 14, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'FontWeight', 'bold');
+
+filename = 'dinamica_ekf.png';  
+saveas(gcf, filename);
+
+figure(2)
+plot(t, u, 'LineWidth', 2, 'DisplayName', 'u');
+grid on;
+
+xlabel('Tempo (s)', 'FontSize', 12, 'FontWeight', 'bold');
+
+legend('show', 'FontSize', 12, 'Location', 'best');
+title('Esforço de controle EKF', 'FontSize', 14, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'FontWeight', 'bold');
+
+filename = 'controle_ekf.png';  
+saveas(gcf, filename);
